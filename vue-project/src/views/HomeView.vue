@@ -14,7 +14,7 @@
     <section class="hero">
       <h1>Découvrez des livres pour tous les goûts</h1>
       <p>Des classiques intemporels aux derniers best-sellers, trouvez votre prochaine lecture ici.</p>
-      <button class="btn-primary">Explorer le catalogue</button>
+      <button class="btn-primary" @click="router.push('/books')">Explorer le catalogue</button>
     </section>
 
     <!-- LIVRES POPULAIRES -->
@@ -25,7 +25,7 @@
           <img :src="book.cover" :alt="book.title" />
           <h3>{{ book.title }}</h3>
           <p>{{ book.description }}</p>
-          <button class="btn-primary">Voir plus</button>
+          <button class="btn-primary" @click="router.push('/books/' + book.id)">Voir plus</button>
         </div>
       </div>
     </section>
@@ -41,7 +41,9 @@
 </template>
 
 <script setup>
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const books = [
   {
