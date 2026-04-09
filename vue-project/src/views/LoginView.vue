@@ -40,14 +40,28 @@
 
 <script setup>
 import { ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { useRouter } from 'vue-router'
+import { authService } from '../services/auth.service' // Ton service !
 
+const router = useRouter()
 const email = ref('')
 const password = ref('')
+const errorMessage = ref('')
 
-const handleLogin = () => {
-  console.log('Login avec:', email.value, password.value)
-  // On branchera l'API plus tard
+const handleLogin = async () => {
+  try {
+    console.log('Tentative de connexion...')
+    await authService.login({
+      email: email.value,
+      password: password.value
+    })
+    
+    // Si ça marche, on redirige vers l'accueil
+    router.push('/')
+  } catch (error) {
+    errorMessage.value = "Email ou mot de passe incorrect"
+    console.error('Erreur login:', error)
+  }
 }
 </script>
 
