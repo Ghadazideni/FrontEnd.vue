@@ -15,7 +15,12 @@ const routes: Array<RouteRecordRaw> = [
     // On importe le composant de Ghada quand il sera prêt
     component: () => import('../views/LoginView.vue') 
   },
-  // Ajoute cette route dans ton tableau 'routes'
+  {
+    path: '/register',
+    name: 'register',
+    // Vérifie bien que le nom du fichier est identique (majuscules/minuscules)
+    component: () => import('../views/RegisterView.vue')
+  },
 { 
   path: '/book/:id', 
   name: 'book-details',
