@@ -48,19 +48,19 @@ const books = [
     id: 1,
     title: "L'étranger",
     description: "Un résumé captivant pour ce livre incontournable.",
-    cover: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Camus_letranger.jpg/220px-Camus_letranger.jpg"
+    cover: "https://picsum.photos/seed/letranger/220/300"
   },
   {
     id: 2,
     title: "Le procès",
     description: "Découvrez pourquoi ce livre est un best-seller.",
-    cover: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Kafka_-_Le_Proc%C3%A8s_%281933%29.jpg/220px-Kafka_-_Le_Proc%C3%A8s_%281933%29.jpg"
+    cover: "https://picsum.photos/seed/leprocès/220/300"
   },
   {
     id: 3,
     title: "La formule de dieu",
     description: "Un récit qui restera gravé dans votre mémoire.",
-    cover: "https://covers.openlibrary.org/b/id/8739161-L.jpg"
+    cover: "https://picsum.photos/seed/formule/220/300"
   }
 ]
 </script>
