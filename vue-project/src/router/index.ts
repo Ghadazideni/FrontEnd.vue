@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
-// @ts-ignore: Vue SFC import without a declaration file
 import HomeView from '../views/HomeView.vue'
 
-// On définit les routes avec le type RouteRecordRaw pour TypeScript
+
+
 const routes: Array<RouteRecordRaw> = [
   { 
     path: '/', 
@@ -21,10 +21,17 @@ const routes: Array<RouteRecordRaw> = [
     // Vérifie bien que le nom du fichier est identique (majuscules/minuscules)
     component: () => import('../views/RegisterView.vue')
   },
-{ 
-  path: '/book/:id', 
+  
+{
+  path: '/book/:id',
   name: 'book-details',
-  component: () => import('../views/BookDetailsView.vue') 
+  component: () => import('../views/BookDetailsView.vue')
+},
+
+{
+  path: '/books',
+  name: 'books',
+  component: () => import('../views/BooksView.vue')
 },
 
   { 
@@ -32,7 +39,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'add-book',
     component: () => import('../views/AddBookView.vue'),
     // Cette partie est cruciale pour TON rôle
-    meta: { requiresAuth: true } 
+    meta: { requiresAuth: false } 
   }
 ]
 

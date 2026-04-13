@@ -1,21 +1,16 @@
 <template>
   <div>
 
-    <!-- NAVBAR -->
-    <nav class="navbar">
-      <div class="navbar-brand">Bookstore</div>
-      <div class="navbar-links">
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/login">Login</RouterLink>
-      </div>
-    </nav>
 
     <!-- HERO -->
     <section class="hero">
       <h1>Découvrez des livres pour tous les goûts</h1>
       <p>Des classiques intemporels aux derniers best-sellers, trouvez votre prochaine lecture ici.</p>
-      <button class="btn-primary">Explorer le catalogue</button>
+      <RouterLink to="/books" class="btn-primary" style="text-decoration: none; display: inline-block;">
+        Explorer le catalogue
+      </RouterLink>
     </section>
+
 
     <!-- LIVRES POPULAIRES -->
     <section class="books-section">
@@ -25,7 +20,9 @@
           <img :src="book.cover" :alt="book.title" />
           <h3>{{ book.title }}</h3>
           <p>{{ book.description }}</p>
-          <button class="btn-primary">Voir plus</button>
+          <button class="btn-primary">
+            <RouterLink :to="`/book/${book.id}`" class="btn-primary" style="text-decoration:none">Voir plus</RouterLink>
+          </button>
         </div>
       </div>
     </section>
@@ -41,28 +38,18 @@
 </template>
 
 <script setup>
-import { RouterLink } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { bookService } from '@/services/bookService'
 
-const books = [
-  {
-    id: 1,
-    title: "L'étranger",
-    description: "Un résumé captivant pour ce livre incontournable.",
-    cover: "https://picsum.photos/seed/letranger/220/300"
-  },
-  {
-    id: 2,
-    title: "Le procès",
-    description: "Découvrez pourquoi ce livre est un best-seller.",
-    cover: "https://picsum.photos/seed/leprocès/220/300"
-  },
-  {
-    id: 3,
-    title: "La formule de dieu",
-    description: "Un récit qui restera gravé dans votre mémoire.",
-    cover: "https://picsum.photos/seed/formule/220/300"
-  }
-]
+const books = ref([])
+
+onMounted(async () => {
+  const response = await bookService.getAll()
+  books.value = response.data
+})
+
+
+
 </script>
 
 <style scoped>

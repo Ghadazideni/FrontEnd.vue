@@ -1,9 +1,14 @@
 import api from './api';
 
+
+
 export const bookService = {
   // Récupérer tous les livres (pour la Home)
   getAll() {
     return api.get('/books');
+  },
+  create(bookData: any) {
+    return api.post('/books', bookData);
   },
   // Récupérer un livre spécifique (pour TA page détails)
   getById(id: string) {

@@ -1,30 +1,33 @@
 <template>
   <div class="books-page">
 
-    <!-- NAVBAR -->
-    <nav class="navbar">
-      <div class="navbar-brand">Bookstore</div>
-      <div class="navbar-links">
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/login">Login</RouterLink>
-      </div>
-    </nav>
+
 
     <!-- HEADER + SEARCH -->
-    <div class="books-header">
+     <div class="books-header">
       <h1>Catalogue des livres</h1>
-      <input
+      <div class="header-actions">
+        <input
         v-model="search"
         type="text"
         placeholder="Rechercher un livre..."
         class="search-input"
-      />
+        />
+        <RouterLink to="/add-book" class="btn-add">
+          + Ajouter un livre
+        </RouterLink>
+      </div>
     </div>
+
 
     <!-- LISTE DES LIVRES -->
     <div class="books-container">
       <div class="book-card" v-for="book in filteredBooks" :key="book.id">
-        <img :src="book.cover" :alt="book.title" />
+        <img 
+        :src="book.cover || 'https://via.placeholder.com/150x200?text=Pas+d+image'" 
+        :alt="book.title" 
+        class="book-image"/>
+      
         <div class="book-info">
           <h3>{{ book.title }}</h3>
           <p class="author">{{ book.author }}</p>
@@ -45,41 +48,21 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
+import { bookService } from '@/services/bookService' // On utilise ton service
 
 const search = ref('')
+const books = ref([]) // On commence vide
 
-const books = ref([
-  {
-    id: 1,
-    title: "L'étranger",
-    author: "Albert Camus",
-    description: "Un résumé captivant pour ce livre incontournable.",
-    cover: "https://m.media-amazon.com/images/I/41MBjSMkqLL.jpg"
-  },
-  {
-    id: 2,
-    title: "Le procès",
-    author: "Franz Kafka",
-    description: "Découvrez pourquoi ce livre est un best-seller.",
-    cover: "https://m.media-amazon.com/images/I/41uHfUkULXL.jpg"
-  },
-  {
-    id: 3,
-    title: "La formule de dieu",
-    author: "J.R. Dos Santos",
-    description: "Un récit qui restera gravé dans votre mémoire.",
-    cover: "https://m.media-amazon.com/images/I/51k5jFCMnuL.jpg"
-  },
-  {
-    id: 4,
-    title: "Les misérables",
-    author: "Victor Hugo",
-    description: "Un chef-d'œuvre de la littérature française.",
-    cover: "https://m.media-amazon.com/images/I/51gFkNKlmZL.jpg"
+onMounted(async () => {
+  try {
+    const response = await bookService.getAll()
+    books.value = response.data // On remplit avec les vrais livres du backend
+  } catch (error) {
+    console.error("Erreur lors du chargement du catalogue:", error)
   }
-])
+})
 
 const filteredBooks = computed(() => {
   if (!search.value) return books.value
@@ -105,6 +88,28 @@ const filteredBooks = computed(() => {
   text-decoration: none;
   margin-left: 20px;
   font-size: 14px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.btn-add {
+  background-color: #2e7d32; /* Un beau vert "Ajout" */
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.btn-add:hover {
+  background-color: #1b5e20;
+  transform: translateY(-2px);
 }
 
 .books-page {

@@ -1,13 +1,7 @@
 <template>
   <div class="register-page">
 
-    <nav class="navbar">
-      <div class="navbar-brand">Bookstore</div>
-      <div class="navbar-links">
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/login">Login</RouterLink>
-      </div>
-    </nav>
+
 
     <div class="login-container">
       <div class="login-box">

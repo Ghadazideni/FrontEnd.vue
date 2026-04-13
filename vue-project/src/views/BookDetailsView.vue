@@ -14,11 +14,25 @@ onMounted(async () => {
     const response = await bookService.getById(id);
     book.value = response.data;
   } catch (error) {
-    console.error("Erreur API:", error);
+    console.error("Erreur lors de la récupération", error);
   } finally {
-    loading.value = false;
+    loading.value = false; // Arrête le chargement quoi qu'il arrive
   }
 });
+
+const deleteBook = async () => {
+  if (confirm("Voulez-vous vraiment supprimer ce livre ? Cette action est irréversible.")) {
+    try {
+      const id = route.params.id as string;
+      await bookService.delete(id);
+      alert("Livre supprimé avec succès !");
+      router.push('/books'); // Redirection vers le catalogue
+    } catch (error) {
+      console.error("Erreur lors de la suppression", error);
+      alert("Erreur : Impossible de supprimer le livre.");
+    }
+  }
+};
 </script>
 
 <template>
@@ -36,6 +50,11 @@ onMounted(async () => {
           <img :src="book.image || 'https://via.placeholder.com/300x450'" alt="Couverture" />
         </div>
         <div class="info-section">
+          <div class="actions mt-4">
+            <button @click="deleteBook" class="btn-delete">
+              Supprimer le livre
+            </button>
+          </div>
           <h1>{{ book.title }}</h1>
           <p class="author">Par <span>{{ book.author }}</span></p>
           <hr />
@@ -66,4 +85,44 @@ onMounted(async () => {
 .author span { color: #1565c0; font-weight: bold; }
 .description { line-height: 1.6; color: #555; margin: 20px 0; }
 .price { font-size: 24px; font-weight: bold; color: #1a237e; }
+.btn-delete {
+  background-color: #d32f2f;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.btn-delete:hover { background-color: #b71c1c; }
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.btn-delete {
+  background-color: #ff5252;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-delete:hover {
+  background-color: #d32f2f;
+  box-shadow: 0 4px 8px rgba(211, 47, 47, 0.3);
+}
+
+/* Loader style */
+.loader {
+  text-align: center;
+  padding: 50px;
+  font-size: 1.2rem;
+  color: #1a237e;
+}
 </style>
