@@ -1,66 +1,97 @@
 <template>
   <div class="books-page">
-
-
-
-    <!-- HEADER + SEARCH -->
-     <div class="books-header">
+    <div class="books-header">
       <h1>Catalogue des livres</h1>
       <div class="header-actions">
-        <input
-        v-model="search"
-        type="text"
-        placeholder="Rechercher un livre..."
-        class="search-input"
-        />
-        <RouterLink to="/add-book" class="btn-add">
-          + Ajouter un livre
-        </RouterLink>
+        <input v-model="search" type="text" placeholder="Rechercher un livre..." class="search-input" />
+        <RouterLink to="/add-book" class="btn-add">+ Ajouter un livre</RouterLink>
       </div>
     </div>
 
-
-    <!-- LISTE DES LIVRES -->
     <div class="books-container">
       <div class="book-card" v-for="book in filteredBooks" :key="book.id">
-        <img 
-        :src="book.cover || 'https://via.placeholder.com/150x200?text=Pas+d+image'" 
-        :alt="book.title" 
-        class="book-image"/>
-      
+        <img :src="book.cover || 'https://via.placeholder.com/150x200?text=Pas+d+image'" :alt="book.title" class="book-image" />
         <div class="book-info">
           <h3>{{ book.title }}</h3>
           <p class="author">{{ book.author }}</p>
           <p class="description">{{ book.description }}</p>
           <div class="book-actions">
-            <RouterLink :to="'/books/' + book.id" class="btn-primary">Voir plus</RouterLink>
+            <button @click="openDetails(book)" class="btn-primary">Voir plus</button>
           </div>
         </div>
       </div>
-
-      <!-- Aucun résultat -->
       <div v-if="filteredBooks.length === 0" class="no-results">
         <p>Aucun livre trouvé pour "{{ search }}"</p>
       </div>
     </div>
 
+    <Transition name="expand">
+      <div v-if="selectedBook" class="details-overlay" @click.self="closeDetails">
+        <div class="expanded-card">
+          <div class="expanded-image-section">
+            <img :src="selectedBook.cover || 'https://via.placeholder.com/300x450'" />
+          </div>
+
+          <div class="expanded-content-section">
+            <button class="close-btn" @click="closeDetails">✕</button>
+            
+            <div v-if="!isEditing" class="view-mode">
+              <span class="category-tag">{{ selectedBook.category || 'Collection' }}</span>
+              <h2>{{ selectedBook.title }}</h2>
+              <p class="expanded-author">écrit par {{ selectedBook.author }}</p>
+              <div class="scroll-description">
+                <p>{{ selectedBook.description }}</p>
+              </div>
+            </div>
+
+            <div v-else class="edit-mode">
+              <h3>Modifier l'ouvrage</h3>
+              <input v-model="editForm.title" class="edit-input title-edit" placeholder="Titre" />
+              <input v-model="editForm.author" class="edit-input" placeholder="Auteur" />
+              <input v-model="editForm.category" class="edit-input" placeholder="Catégorie" />
+              <input v-model="editForm.cover" class="edit-input" placeholder="Ex: https://image.com/photo.jpg" />
+              <textarea v-model="editForm.description" class="edit-textarea" rows="5" placeholder="Description"></textarea>
+              <input v-model="editForm.price" type="number" class="edit-input" placeholder="Prix" />
+            </div>
+
+            <div class="expanded-footer">
+              <span v-if="!isEditing" class="expanded-price">{{ selectedBook.price }} €</span>
+              
+              <div class="footer-btns">
+                <template v-if="!isEditing">
+                  <button @click="isEditing = true" class="btn-modify">Modifier</button>
+                  <button @click="handleDelete(selectedBook.id)" class="btn-delete-red">Supprimer</button>
+                </template>
+                
+                <template v-else>
+                  <button @click="handleUpdate" class="btn-save">Enregistrer</button>
+                  <button @click="isEditing = false" class="btn-back-light">Annuler</button>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
-import { bookService } from '@/services/bookService' // On utilise ton service
+import { bookService } from '@/services/bookService'
 
 const search = ref('')
-const books = ref([]) // On commence vide
+const books = ref([])
+const selectedBook = ref(null)
+const isEditing = ref(false)
+const editForm = ref({})
 
 onMounted(async () => {
   try {
     const response = await bookService.getAll()
-    books.value = response.data // On remplit avec les vrais livres du backend
+    books.value = response.data
   } catch (error) {
-    console.error("Erreur lors du chargement du catalogue:", error)
+    console.error("Erreur chargement:", error)
   }
 })
 
@@ -71,148 +102,103 @@ const filteredBooks = computed(() => {
     book.author.toLowerCase().includes(search.value.toLowerCase())
   )
 })
+
+const openDetails = (book) => {
+  selectedBook.value = book
+  editForm.value = { ...book } // Clone data for editing
+  isEditing.value = false
+}
+
+const closeDetails = () => {
+  selectedBook.value = null
+  isEditing.value = false
+}
+
+const handleUpdate = async () => {
+  try {
+    const response = await bookService.update(selectedBook.value.id, editForm.value)
+    // Update the book in the local list
+    const index = books.value.findIndex(b => b.id === selectedBook.value.id)
+    books.value[index] = response.data
+    // Update the display
+    selectedBook.value = response.data
+    isEditing.value = false
+  } catch (error) {
+    alert("Erreur lors de la mise à jour")
+  }
+}
+
+const handleDelete = async (id) => {
+  if (confirm("Supprimer ce livre ?")) {
+    try {
+      await bookService.delete(id)
+      books.value = books.value.filter(b => b.id !== id)
+      closeDetails()
+    } catch (error) {
+      alert("Erreur suppression")
+    }
+  }
+}
 </script>
 
 <style scoped>
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(to right, #1a237e, #1565c0);
-  padding: 14px 40px;
-  color: white;
-}
-.navbar-brand { font-size: 20px; font-weight: bold; }
-.navbar-links a {
-  color: white;
-  text-decoration: none;
-  margin-left: 20px;
-  font-size: 14px;
-}
+/* --- VOS STYLES EXISTANTS --- */
+.books-page { min-height: 100vh; background: #f0f0f0; }
+.books-header { padding: 30px 40px; display: flex; justify-content: space-between; align-items: center; }
+.search-input { padding: 10px; border-radius: 4px; border: 1px solid #ccc; width: 280px; }
+.books-container { padding: 0 40px 40px; display: flex; flex-direction: column; gap: 20px; }
+.book-card { background: white; padding: 16px; border-radius: 8px; display: flex; gap: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.book-card img { width: 100px; height: 140px; object-fit: cover; }
+.btn-primary { background: #1a237e; color: white; border: none; padding: 8px 18px; border-radius: 4px; cursor: pointer; }
 
-.header-actions {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-}
+/* --- OVERLAY & CARD --- */
+.details-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(8px); }
+.expanded-card { background: white; display: flex; width: 90%; max-width: 950px; height: 600px; border-radius: 12px; overflow: hidden; }
+.expanded-image-section { flex: 1; background: #0f172a; display: flex; justify-content: center; align-items: center; padding: 40px; }
+.expanded-image-section img { max-width: 100%; max-height: 100%; border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.expanded-content-section { flex: 1.3; padding: 40px; display: flex; flex-direction: column; position: relative; }
 
-.btn-add {
-  background-color: #2e7d32; /* Un beau vert "Ajout" */
-  color: white;
-  padding: 10px 15px;
+/* --- EDIT MODE STYLES --- */
+.edit-mode h3 { color: #1a237e; margin-bottom: 15px; }
+.edit-input, .edit-textarea {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #ddd;
   border-radius: 4px;
+  font-family: inherit;
+}
+.title-edit { font-size: 20px; font-weight: bold; border-left: 4px solid #1a237e; }
+
+/* --- BUTTONS --- */
+.footer-btns { display: flex; gap: 10px; }
+.btn-modify { background: #1565c0; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+.btn-save { background: #2e7d32; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+.btn-delete-red { background: #991b1b; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+.btn-back-light { border: 1px solid #ccc; background: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+.btn-add {
+  background-color: transparent; 
+  color: #2e7d32; /* Texte vert */
+  border: 2px solid #2e7d32; 
+  padding: 8px 16px;
+  border-radius: 6px;
   text-decoration: none;
   font-weight: bold;
   font-size: 14px;
-  transition: 0.3s;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
 }
 
 .btn-add:hover {
-  background-color: #1b5e20;
-  transform: translateY(-2px);
-}
-
-.books-page {
-  min-height: 100vh;
-  background: #f0f0f0;
-}
-
-.books-header {
-  padding: 30px 40px 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.books-header h1 {
-  color: #1a237e;
-  font-size: 24px;
-}
-
-.search-input {
-  padding: 10px 16px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 14px;
-  width: 280px;
-  outline: none;
-}
-
-.search-input:focus {
-  border-color: #1565c0;
-}
-
-.books-container {
-  padding: 20px 40px 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.book-card {
-  background: white;
-  border-radius: 8px;
-  display: flex;
-  gap: 20px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.book-card img {
-  width: 100px;
-  height: 140px;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-.book-info {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  flex: 1;
-}
-
-.book-info h3 {
-  font-size: 18px;
-  color: #1a237e;
-  margin-bottom: 4px;
-}
-
-.author {
-  color: #888;
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-
-.description {
-  color: #555;
-  font-size: 14px;
-  flex: 1;
-}
-
-.book-actions {
-  margin-top: 12px;
-}
-
-.btn-primary {
-  background: linear-gradient(to right, #1a237e, #1565c0);
+  background-color: #2e7d32;
   color: white;
-  border: none;
-  padding: 8px 18px;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(46, 125, 50, 0.2);
 }
 
-.btn-primary:hover { opacity: 0.9; }
-
-.no-results {
-  text-align: center;
-  padding: 40px;
-  color: #888;
-}
+.close-btn { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; }
+.scroll-description { margin-top: 20px; max-height: 180px; overflow-y: auto; line-height: 1.6; color: #444; }
+.expand-enter-active, .expand-leave-active { transition: all 0.4s ease; }
+.expand-enter-from, .expand-leave-to { opacity: 0; transform: scale(0.95); }
 </style>

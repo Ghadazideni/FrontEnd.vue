@@ -47,22 +47,34 @@ import { useRouter } from 'vue-router'
 import { bookService } from '@/services/bookService'
 
 const router = useRouter()
+const isSubmitting = ref(false) // Prevents multiple clicks
+
 const newBook = ref({
   title: '',
   author: '',
-  cover: '', // Très important
+  cover: '', 
   description: '',
   price: 0,
   category: ''
 })
 
 const submitForm = async () => {
+  if (isSubmitting.value) return
+  
+  isSubmitting.value = true
   try {
-    await bookService.create(newBook.value)
-    alert("Livre ajouté !")
-    router.push('/books') // Redirection vers le catalogue
+    // Calling your bookService.create(bookData)
+    const response = await bookService.create(newBook.value)
+    
+    if (response.status === 201 || response.status === 200) {
+      console.log("Success! Book added to the catalogue.")
+      router.push('/books') // Redirect to see the updated list
+    }
   } catch (err) {
-    console.error("Erreur d'ajout", err)
+    console.error("Erreur d'ajout au catalogue:", err)
+    alert("Check if your backend (localhost:3000) is running!")
+  } finally {
+    isSubmitting.value = false
   }
 }
 </script>
